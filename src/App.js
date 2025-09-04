@@ -8,7 +8,7 @@ import VerifyOtpPage from "./Pages/verifyOTP";
 
 export const WebSocketContext = createContext(null);
 
-const WS_URL = "ws://localhost:8080";
+const WS_URL = "wss://chatappp-3-mr6c.onrender.com";
 
 function App() {
   const socketRef = useRef(null);
