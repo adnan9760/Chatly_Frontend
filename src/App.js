@@ -1,24 +1,52 @@
-import logo from './logo.svg';
-import './App.css';
+// App.jsx
+import { useEffect, useRef, createContext } from "react";
+import { Routes, Route } from "react-router-dom";
+import AuthPage from "./Pages/Auth";
+import HomePage from "./Pages/Home";
+import Dashboard from "./Pages/DashBoadUI";
+import VerifyOtpPage from "./Pages/verifyOTP";
+import OTPInput from "./Pages/verifyOTP";
+
+export const WebSocketContext = createContext(null);
+
+const WS_URL = "ws://localhost:8080"; 
 
 function App() {
+  const socketRef = useRef(null);
+
+  useEffect(() => {
+    socketRef.current = new WebSocket(WS_URL);
+
+    socketRef.current.onopen = () => {
+      console.log("Connected to WebSocket server");
+    };
+
+    socketRef.current.onmessage = (event) => {
+      console.log("Message from server:", event.data);
+    };
+
+    socketRef.current.onclose = () => {
+      console.log("Disconnected from WebSocket server");
+    };
+
+    return () => {
+      if (socketRef.current) {
+        socketRef.current.close();
+      }
+    };
+  }, []);
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <WebSocketContext.Provider value={socketRef}>
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/signin" element={<AuthPage mode="signin" />} />
+        <Route path="/signup" element={<AuthPage mode="signup" />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/dashboard/add-friend" element={<Dashboard />} />
+        <Route path="/verifyotp" element={<OTPInput />} />
+      </Routes>
+    </WebSocketContext.Provider>
   );
 }
 
