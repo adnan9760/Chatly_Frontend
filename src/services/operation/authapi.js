@@ -45,6 +45,8 @@ return async (dispatch)=>{
     dispatch(settoken(response.data.token));
 
           localStorage.setItem("token", JSON.stringify(response.data.token));
+          console.log("response.data.user.username",response.data.user.username)
+          localStorage.setItem("username", response.data.user.username);
       return response.data;
   } catch (error) {
     {
