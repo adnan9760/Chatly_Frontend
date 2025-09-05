@@ -191,14 +191,18 @@ const AnimatedChatDashboard = () => {
         }
 
         if (Msg.type === "webrtc_ice_candidate") {
-          webrtcRef.current.handleCandidate(Msg.data);
+ console.log("Received ICE from", Msg.from, "=>", Msg.data);
+           webrtcRef.current.handleCandidate(Msg.data);
         }
 
         if (Msg.type === "webrtc_call_accept") {
-          console.log("hello inside from webrtc_call_accept")
-          setIsInCall(true);
-          await webrtcRef.current.initConnection(true, Msg.UserId);
-        }
+  console.log("Call accepted by:", Msg.from, "(", Msg.UserId, ")");
+  setIsInCall(true);
+
+  // Do NOT re-init connection here.
+  // Caller already has a connection. Just wait for answer/ICE.
+}
+
 
         if (Msg.type === "webrtc_call_end") {
           handleEndCall();
@@ -441,26 +445,27 @@ const AnimatedChatDashboard = () => {
   };
 
   const handleAcceptCall = async (FriendId) => {
-    console.log("friend id", FriendId);
-    setIncommingCall(null);
-    setIsInCall(true);
-    setShowVideoCall(true);
+  console.log("friend id", FriendId);
+  setIncommingCall(null);
+  setIsInCall(true);
+  setShowVideoCall(true);
 
-    const token = JSON.parse(localStorage.getItem("token"));
-    const decoded = jwtDecode(token);
-    const myUserId = decoded.id;
-    console.log("my user id", myUserId);
+  const token = JSON.parse(localStorage.getItem("token"));
+  const decoded = jwtDecode(token);
+  const myUserId = decoded.id;
 
-    await webrtcRef.current.initConnection(false, FriendId);
-    console.log("frin", FriendId);
-    
-    socketRef.current.send(JSON.stringify({
-      type: "webrtc_call_accept",
-      FriendId: FriendId,
-      UserId: myUserId,
-      from: username
-    }));
-  };
+  // ✅ Just notify server that user accepted
+  socketRef.current.send(JSON.stringify({
+    type: "webrtc_call_accept",
+    FriendId,
+    UserId: myUserId,
+    from: username
+  }));
+
+  // ❌ DO NOT call initConnection here
+  // The flow will continue when `webrtc_offer` arrives
+};
+
 
   const handleRejectCall = (friendId) => {
     setIncommingCall(null);
